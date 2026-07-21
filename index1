@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DM - Genesis</title>
+
+    <script
+      src="https://datamulheresoac-grfxxldppojw-2f-gr.analytics.ocp.oraclecloud.com/public/dv/v1/embedding/standalone/embedding.js?TOKEN=true"
+      type="application/javascript">
+    </script>
+
+    <style>
+      html,
+      body {
+        width: 100%;
+        margin: 0;
+      }
+
+      .menu {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 12px 16px;
+        background: #ffffff;
+        border-bottom: 1px solid #d9d9d9;
+      }
+
+      .menu button {
+        padding: 8px 12px;
+        color: #1f4b99;
+        font: 600 14px Arial, sans-serif;
+        cursor: pointer;
+        background: transparent;
+        border: 0;
+        border-radius: 4px;
+      }
+
+      .menu button:hover,
+      .menu button[aria-current="page"] {
+        background: #eef4ff;
+      }
+
+      oracle-dv {
+        display: block;
+        width: 100%;
+        height: calc(100vh - 74px);
+        min-height: 600px;
+      }
+    </style>
+  </head>
+
+  <body>
+    
+
+    <oracle-dv
+      id="painel-data-mulheres"
+      project-path="/@Catalog/shared/Dashboards/Painel Data Mulheres"
+      active-page="insight"
+      active-tab-id="snapshot!canvas!1"
+      project-options='{"bDisableMobileLayout":false, "bShowFilterBar":false, "showCanvasNavigation":true}'>
+    </oracle-dv>
+ç
+    <script>
+      const gatewayTokenUrl =
+        "https://fgwp43ntaecbl3vydbcar55vjm.apigateway.sa-saopaulo-1.oci.customer-oci.com/oac-public/token";
+
+      async function getOacToken() {
+        const response = await fetch(gatewayTokenUrl, {
+          method: "GET",
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error(`Token endpoint returned HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.access_token) {
+          throw new Error("Token endpoint did not return access_token");
+        }
+
+        return data.access_token;
+      }
+
+      async function initializeOac() {
+        try {
+          // O OAC espera que tokenAuthFunction devolva uma string, não uma Promise.
+          const idcsToken = await getOacToken();
+
+          requirejs([
+            "jquery",
+            "knockout",
+            "obitech-application/application",
+            "ojs/ojcore",
+            "ojs/ojknockout",
+            "ojs/ojcomposite",
+            "jet-composites/oracle-dv/loader"
+          ], function ($, ko, application) {
+            application.setSecurityConfig("token", {
+              tokenAuthFunction: function () {
+                return idcsToken;
+              }
+            });
+
+            ko.applyBindings();
+          });
+        } catch (error) {
+          console.error("Unable to initialize OAC:", error);
+        }
+      }
+
+      initializeOac();
+
+      const painel = document.querySelector("#painel-data-mulheres");
+
+      document.querySelectorAll(".menu button").forEach(function (botao) {
+        botao.addEventListener("click", function () {
+          painel.setAttribute("active-tab-id", botao.dataset.tabId);
+
+          document.querySelectorAll(".menu button").forEach(function (item) {
+            item.toggleAttribute("aria-current", item === botao);
+          });
+        });
+      });
+
+    </script>
+  </body>
+</html>
